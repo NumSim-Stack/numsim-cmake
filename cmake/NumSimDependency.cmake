@@ -78,10 +78,16 @@ macro(numsim_dependency _nd_name)
             else()
                 set(numsim_dependency_${_nd_name}_SOURCE "fetched ${_nd_GIT_TAG}")
             endif()
+            # Shallow clones only for tags/branches: a commit hash that is not
+            # on the default branch cannot be checked out of a shallow clone.
+            set(_nd_shallow GIT_SHALLOW TRUE)
+            if(_nd_GIT_TAG MATCHES "^[0-9a-fA-F]{40}$")
+                set(_nd_shallow)
+            endif()
             FetchContent_Declare(${_nd_name}
                 GIT_REPOSITORY ${_nd_GIT_REPOSITORY}
                 GIT_TAG        ${_nd_GIT_TAG}
-                GIT_SHALLOW    TRUE
+                ${_nd_shallow}
                 SYSTEM
                 ${_nd_subdir_args})
             FetchContent_MakeAvailable(${_nd_name})
@@ -93,4 +99,5 @@ macro(numsim_dependency _nd_name)
     message(STATUS "${PROJECT_NAME}: ${_nd_name} (${numsim_dependency_${_nd_name}_SOURCE})")
     unset(_nd_source_dir)
     unset(_nd_found)
+    unset(_nd_shallow)
 endmacro()

@@ -11,10 +11,18 @@ set_tests_properties(setup PROPERTIES FIXTURES_SETUP layout)
 function(dependency_case name expected)
     add_test(NAME dependency.${name}
              COMMAND ${CMAKE_COMMAND} -S ${_work}/devel/consumer -B ${_work}/build-${name}
-                     -DNUMSIM_CMAKE_MODULES=${_modules} -DDEPA_REPOSITORY=${_work}/depa.git ${ARGN})
+                     -DNUMSIM_CMAKE_MODULES=${_modules} -DDEPA_REPOSITORY=${_work}/depa.git
+                     -DDEPA_TAG=v1 ${ARGN})
     set_tests_properties(dependency.${name} PROPERTIES FIXTURES_REQUIRED layout
                          PASS_REGULAR_EXPRESSION "RESOLVED=${expected}")
 endfunction()
+
+# pinned to a commit hash on a side branch (no shallow clone possible)
+add_test(NAME dependency.fetched_by_hash
+         COMMAND ${CMAKE_COMMAND} -DWORK=${_work} -DMODULES=${_modules}
+                 -P ${CMAKE_CURRENT_SOURCE_DIR}/fetch_by_hash.cmake)
+set_tests_properties(dependency.fetched_by_hash PROPERTIES FIXTURES_REQUIRED layout
+                     PASS_REGULAR_EXPRESSION "depa side branch")
 
 # 3. sibling checkout next to the top-level project (default)
 dependency_case(sibling "sibling")
@@ -28,6 +36,6 @@ dependency_case(no_sibling "fetched v1" -DNUMSIM_DEVEL_DIR=${_work})
 # OPTIONS reach the subproject (DEPA_TESTS=OFF) without FORCE
 add_test(NAME dependency.options
          COMMAND ${CMAKE_COMMAND} -S ${_work}/devel/consumer -B ${_work}/build-options
-                 -DNUMSIM_CMAKE_MODULES=${_modules} -DDEPA_REPOSITORY=${_work}/depa.git)
+                 -DNUMSIM_CMAKE_MODULES=${_modules} -DDEPA_REPOSITORY=${_work}/depa.git -DDEPA_TAG=v1)
 set_tests_properties(dependency.options PROPERTIES FIXTURES_REQUIRED layout
                      PASS_REGULAR_EXPRESSION "DEPA_TESTS=OFF")

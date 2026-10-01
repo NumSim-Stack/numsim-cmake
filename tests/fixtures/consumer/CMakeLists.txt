@@ -5,7 +5,7 @@ include(NumSimDependency)
 numsim_dependency(depa
     TARGET depa::depa
     GIT_REPOSITORY "${DEPA_REPOSITORY}"
-    GIT_TAG        v1
+    GIT_TAG        ${DEPA_TAG}
     SIBLING        depa
     NO_FIND_PACKAGE
     OPTIONS DEPA_TESTS=OFF)
