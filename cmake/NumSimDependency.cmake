@@ -80,8 +80,10 @@ macro(numsim_dependency _nd_name)
             endif()
             # Shallow clones only for tags/branches: a commit hash that is not
             # on the default branch cannot be checked out of a shallow clone.
+            # (CMake's regex has no {40} quantifier: match hex, then check the length.)
             set(_nd_shallow GIT_SHALLOW TRUE)
-            if(_nd_GIT_TAG MATCHES "^[0-9a-fA-F]{40}$")
+            string(LENGTH "${_nd_GIT_TAG}" _nd_tag_length)
+            if(_nd_GIT_TAG MATCHES "^[0-9a-fA-F]+$" AND _nd_tag_length EQUAL 40)
                 set(_nd_shallow)
             endif()
             FetchContent_Declare(${_nd_name}
@@ -100,4 +102,5 @@ macro(numsim_dependency _nd_name)
     unset(_nd_source_dir)
     unset(_nd_found)
     unset(_nd_shallow)
+    unset(_nd_tag_length)
 endmacro()
