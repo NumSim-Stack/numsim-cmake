@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.25)
+project(depa LANGUAGES NONE)
+option(DEPA_TESTS "depa tests" ON)
+add_library(depa INTERFACE)
+add_library(depa::depa ALIAS depa)
+message(STATUS "depa configured, DEPA_TESTS=${DEPA_TESTS}")
