@@ -27,6 +27,10 @@ endif()
 
 set(NUMSIM_ASAN_FLAGS -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=undefined)
 set(NUMSIM_TSAN_FLAGS -fsanitize=thread -fno-omit-frame-pointer)
+# GCC 13 reports false-positive -Warray-bounds / -Wstringop-* in
+# libstdc++ when sanitizer instrumentation meets -O2; off in the variants only.
+set(NUMSIM_SANITIZER_WARNING_EXCEPTIONS
+    $<$<CXX_COMPILER_ID:GNU>:-Wno-array-bounds -Wno-stringop-overflow -Wno-stringop-overread>)
 
 # libtsan (GCC 13) aborts with "unexpected memory mapping" under the ASLR
 # entropy of recent kernels: TSan binaries run without ASLR.
@@ -90,10 +94,12 @@ function(numsim_add_test TARGET_NAME)
         if(ARG_MPI_PROCS)
             list(APPEND _asan_env "ASAN_OPTIONS=detect_leaks=0") # Open MPI leaks at shutdown
         endif()
-        _numsim_test_executable(${TARGET_NAME}_asan ${_common} FLAGS ${NUMSIM_ASAN_FLAGS})
+        _numsim_test_executable(${TARGET_NAME}_asan ${_common}
+                                FLAGS ${NUMSIM_ASAN_FLAGS} ${NUMSIM_SANITIZER_WARNING_EXCEPTIONS})
         _numsim_register_test(${TARGET_NAME}_asan "_asan" MPI_PROCS ${ARG_MPI_PROCS} ENVIRONMENT ${_asan_env})
         if(ARG_TSAN)
-            _numsim_test_executable(${TARGET_NAME}_tsan ${_common} FLAGS ${NUMSIM_TSAN_FLAGS})
+            _numsim_test_executable(${TARGET_NAME}_tsan ${_common}
+                                    FLAGS ${NUMSIM_TSAN_FLAGS} ${NUMSIM_SANITIZER_WARNING_EXCEPTIONS})
             if(NUMSIM_SETARCH)
                 set_target_properties(${TARGET_NAME}_tsan PROPERTIES
                     CROSSCOMPILING_EMULATOR "${NUMSIM_SETARCH};${CMAKE_HOST_SYSTEM_PROCESSOR};-R")
